@@ -1,0 +1,101 @@
+config:
+  environments:
+    local:
+      target: "http://{{ $processEnvironment.APP_HOST }}:{{ $processEnvironment.APP_PORT }}/api"
+      processor: "../processor.js"
+    prod:
+      target: "http://{{ $processEnvironment.APP_HOST }}:{{ $processEnvironment.APP_PORT }}/api"
+      processor: "../processor.js"
+      plugins:
+        statsd:
+          host: "{{ $processEnvironment.STATSD_HOST }}"
+          port: "{{ $processEnvironment.STATSD_PORT }}"
+          prefix: "artillery"
+
+  pool: 50 # All HTTP requests from all virtual users will be sent over the same connections
+
+  phases:
+    - name: Ramp up load from 1 to 10 RPS in 120 seconds
+      duration: 120
+      arrivalRate: 1
+      rampTo: 10
+    - name: Sustained load at 10 RPS for 60 seconds
+      duration: 60
+      arrivalRate: 10
+    - name: Ramp up load from 10 to 30 RPS in 60 seconds
+      duration: 60
+      arrivalRate: 10
+      rampTo: 30
+    - name: Sustained load at 30 RPS for 300 seconds
+      duration: 300
+      arrivalRate: 30
+    - name: Ramp up load from 30 to 50 RPS in 60 seconds
+      duration: 60
+      arrivalRate: 30
+      rampTo: 50
+    - name: Sustained load at 50 RPS for 300 seconds
+      duration: 300
+      arrivalRate: 50
+    - name: Ramp up load from 50 to 70 RPS in 60 seconds
+      duration: 60
+      arrivalRate: 50
+      rampTo: 70
+    - name: Sustained load at 70 RPS for 300 seconds
+      duration: 300
+      arrivalRate: 70
+    
+scenarios:
+  - name: "Creator posts a poll"
+    weight: 5
+    flow:
+      - post:
+          url: "/users"          
+          formData:
+            username: "{{ $randomString(30) }}"
+            password: "{{ $randomString(30) }}"
+          capture:
+            json: "$.access_token"
+            as: "jwt"
+      - think: 5s
+      - post:
+          url: "/polls"
+          headers:
+            Content-Type: "application/json"
+            Accept: application/json
+            Authorization: "Bearer {{ jwt }}"
+          beforeRequest: "addRandomPoll"
+            
+  - name: "Voter searches for polls and votes on them"
+    weight: 95
+    flow:
+      - post:
+          url: "/users"
+          formData:
+            username: "{{ $randomString(30) }}"
+            password: "{{ $randomString(30) }}"
+          capture:
+            json: "$.access_token"
+            as: "jwt"
+      - think: 5s
+      - get:
+          url: "/polls"
+          headers:
+            Content-Type: "application/json"
+            Accept: application/json"
+            Authorization: "Bearer {{ jwt }}"
+          afterResponse: "choosePoll"
+      - think: 15s
+      - get:
+          ifTrue: "selectedPollId"
+          url: "/polls/{{ selectedPollId }}"
+          headers:
+            Content-Type: "application/json"
+            Accept: application/json"
+          afterResponse: "choosePollOption"
+      - post:
+          ifTrue: "selectedOption"
+          url: "/polls/{{ selectedPollId }}/vote?option={{ selectedOption }}"
+          headers:
+            Content-Type: "application/json"
+            Accept: "application/json"
+            Authorization: "Bearer {{ jwt }}"
