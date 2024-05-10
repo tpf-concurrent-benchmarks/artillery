@@ -60,12 +60,12 @@ scenarios:
       - post:
           url: "/polls"
           headers:
-            Content-Type: "application/json"
+            Content-Type: application/json
             Accept: application/json
             Authorization: "Bearer {{ jwt }}"
           beforeRequest: "addRandomPoll"
             
-  - name: "Voter searches for polls and votes on them"
+  - name: "Voter searches for a poll and votes"
     weight: 95
     flow:
       - post:
@@ -80,8 +80,8 @@ scenarios:
       - get:
           url: "/polls"
           headers:
-            Content-Type: "application/json"
-            Accept: application/json"
+            Content-Type: application/json
+            Accept: application/json
             Authorization: "Bearer {{ jwt }}"
           afterResponse: "choosePoll"
       - think: 15s
@@ -89,13 +89,13 @@ scenarios:
           ifTrue: "selectedPollId"
           url: "/polls/{{ selectedPollId }}"
           headers:
-            Content-Type: "application/json"
-            Accept: application/json"
+            Content-Type: application/json
+            Accept: application/json
           afterResponse: "choosePollOption"
       - post:
           ifTrue: "selectedOption"
           url: "/polls/{{ selectedPollId }}/vote?option={{ selectedOption }}"
           headers:
-            Content-Type: "application/json"
-            Accept: "application/json"
+            Content-Type: application/json
+            Accept: application/json
             Authorization: "Bearer {{ jwt }}"
