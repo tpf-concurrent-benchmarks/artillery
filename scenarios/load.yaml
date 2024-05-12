@@ -49,8 +49,11 @@ scenarios:
     weight: 5
     flow:
       - post:
-          url: "/users"          
-          formData:
+          url: "/users"
+          headers:
+            Content-Type: application/json
+            Accept: application/json         
+          json:
             username: "{{ $randomString(30) }}"
             password: "{{ $randomString(30) }}"
           capture:
@@ -70,7 +73,10 @@ scenarios:
     flow:
       - post:
           url: "/users"
-          formData:
+          headers:
+            Content-Type: application/json
+            Accept: application/json         
+          json:
             username: "{{ $randomString(30) }}"
             password: "{{ $randomString(30) }}"
           capture:

@@ -35,7 +35,7 @@ function addRandomPoll(requestParams, _context, _ee, next) {
   const title = pollTitles[randomIndex];
   const options = pollOptions[randomIndex];
   const poll = {
-    poll_topic: title,
+    title: title,
     options: options
   };
   requestParams.json = poll;
@@ -43,14 +43,14 @@ function addRandomPoll(requestParams, _context, _ee, next) {
 }
 
 function choosePoll(_req, res, context, _events, done) {
-  const polls = JSON.parse(res.body);
+  const polls = JSON.parse(res.body).polls;
   const pollsAmount = polls.length;
   if (pollsAmount === 0) {
     return done();
   }
   const selectedPollPos = Math.floor(Math.random() * pollsAmount);
   const poll = polls[selectedPollPos];
-  context.vars.selectedPollId = poll.poll_id;
+  context.vars.selectedPollId = poll.id;
   return done();
 }
 
