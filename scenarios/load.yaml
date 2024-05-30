@@ -92,14 +92,14 @@ scenarios:
           afterResponse: "choosePoll"
       - think: 15s
       - get:
-          ifTrue: "selectedPollId"
+          ifTrue: "selectedPollId != null"
           url: "/polls/{{ selectedPollId }}"
           headers:
             Content-Type: application/json
             Accept: application/json
           afterResponse: "choosePollOption"
       - post:
-          ifTrue: "selectedOption"
+          ifTrue: "selectedOption != null"
           url: "/polls/{{ selectedPollId }}/vote?option={{ selectedOption }}"
           headers:
             Content-Type: application/json

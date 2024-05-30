@@ -43,7 +43,17 @@ function addRandomPoll(requestParams, _context, _ee, next) {
 }
 
 function choosePoll(_req, res, context, _events, done) {
-  const polls = JSON.parse(res.body).polls;
+  var polls;
+  try {
+    polls = JSON.parse(res.body)
+  } catch {
+    return done();
+  }
+  if (polls === undefined || polls.polls === undefined) {
+    return done();
+  }
+  polls = polls.polls;
+
   const pollsAmount = polls.length;
   if (pollsAmount === 0) {
     return done();
@@ -55,7 +65,16 @@ function choosePoll(_req, res, context, _events, done) {
 }
 
 function choosePollOption(_req, res, context, _events, done) {
-  const poll = JSON.parse(res.body);
+  var poll;
+  try {
+    poll = JSON.parse(res.body);
+  } catch {
+    return done();
+  }
+  
+  if (poll === undefined || poll.options === undefined) {
+    return done();
+  }
   const optionsAmount = poll.options.length;
   const selectedOptionPos = Math.floor(Math.random() * optionsAmount);
   context.vars.selectedOption = selectedOptionPos;
